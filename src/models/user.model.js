@@ -41,6 +41,7 @@ const UserSchema = new Schema(
         },
       },
     },
+    jwt:Array
   },
   { timestamps: true },
 );

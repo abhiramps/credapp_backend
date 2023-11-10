@@ -97,12 +97,9 @@ export const Login = async (req, res, next) => {
           .status(HTTPStatus.INTERNAL_SERVER_ERROR)
           .json({ message: "Error generating token" });
 
-      const createSession = await Sessions.create({
-        userId: user._id,
-        jwt: token,
-      });
+      const updateUser = await User.updateOne({_id:user._id},{$push:{jwt:token}});
 
-      if (!createSession) {
+      if (!updateUser) {
         res
           .status(HTTPStatus.INTERNAL_SERVER_ERROR)
           .json({ message: "Error Creating session" });

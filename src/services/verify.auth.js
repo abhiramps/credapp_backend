@@ -18,9 +18,9 @@ export const verifyAuth = async (req, res, next) => {
         }
 
         // Verify the user ....
-        const user = await Sessions.findOne(
-          { userId: verifyToken.id, jwt: token },
-          { jwt: 1 }
+        const user = await User.findOne(
+          { _id: verifyToken.id, jwt: token },
+          { jwt: 0 }
         );
         if (!user) res.status(401).send("Invalid User");
 

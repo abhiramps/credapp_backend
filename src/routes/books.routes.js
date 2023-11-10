@@ -9,6 +9,7 @@ const books = [
 ];
 
 routes.get('/',verifyAuth,(req,res)=>{
+    // console.log("req",req.json())
     res.json(books) 
 })
 

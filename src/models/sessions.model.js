@@ -4,10 +4,11 @@ import  { Schema,model } from 'mongoose';
 
 const sessionSchema = new Schema(
   {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref:'User'
-    },
+    // userId:Schema.Types.ObjectId,
+    // userId: {
+    //   type: Schema.Types.ObjectId,
+    //   ref:'User'
+    // },
     jwt:String
   },
   { timestamps: true },
