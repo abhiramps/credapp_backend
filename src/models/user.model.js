@@ -25,10 +25,14 @@ const UserSchema = new Schema(
       type: String,
       trim: true,
     },
-    username: {
+    userName: {
       type: String,
       trim: true,
       unique: true,
+    },
+    gender: {
+      type: String,
+      trim: true,
     },
     password: {
       type: String,

@@ -40,6 +40,12 @@ routes.post(
     UserController.Login,
 );
 
+routes.post(
+    '/logout',
+    verifyAuth,
+    UserController.Logout,
+);
+
 routes.use((err, req, res, next)=> {
     if (err instanceof ValidationError) {
       return res.status(err.statusCode).json(err)

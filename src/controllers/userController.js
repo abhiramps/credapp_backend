@@ -3,7 +3,6 @@ import User from "../models/user.model.js";
 import HTTPStatus from "http-status";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import Sessions from "../models/sessions.model.js";
 /**
  * Generate a jwt token for authentication
  *
@@ -28,7 +27,8 @@ export const validation = {
       email: Joi.string().email().required(),
       firstName: Joi.string().required(),
       lastName: Joi.string().required(),
-      username: Joi.string().min(3).max(20).required(),
+      userName: Joi.string().min(3).max(20).required(),
+      gender: Joi.string().required(),
       password: Joi.string()
         .min(6)
         .regex(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/)
@@ -47,23 +47,24 @@ export const validation = {
 
 export const createUser = async (req, res, next) => {
   try {
-    // console.log("req",req.body)
     const isUser = await User.findOne({ email: req.body.email }, { email: 1 });
-    if (isUser)
+    if (isUser){
       res
         .status(HTTPStatus.INTERNAL_SERVER_ERROR)
         .json({ message: "user already there" });
-
+        return next();
+    }
     // Encrypt password
     let hashPassword = await bcrypt.hash(req.body.password, 12);
-    console.log("hashPassword", hashPassword);
     req.body.password = hashPassword;
 
     const result = await User.create(req.body);
-    if (!result)
+    if (!result){
       res
         .status(HTTPStatus.INTERNAL_SERVER_ERROR)
         .json("Unable to create user");
+        return next();
+    }
 
     res
       .status(HTTPStatus.CREATED)
@@ -78,11 +79,18 @@ export const createUser = async (req, res, next) => {
 export const Login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    // console.log("req",req.body)
+    console.log("req",req.body)
     const user = await User.findOne(
       { email },
       { email: 1, password: 1, firstName: 1 }
     );
+
+    if(!user){
+       res
+      .status(HTTPStatus.INTERNAL_SERVER_ERROR)
+      .json({ message: "User Not found !!" });
+      return next();
+    }
 
     // validate the password
     const match = await bcrypt.compare(password, user.password);
@@ -103,17 +111,36 @@ export const Login = async (req, res, next) => {
         res
           .status(HTTPStatus.INTERNAL_SERVER_ERROR)
           .json({ message: "Error Creating session" });
+          return next();
       }
 
       res.status(200).json({ token });
+      return next();
     } else {
       res
         .status(HTTPStatus.INTERNAL_SERVER_ERROR)
         .json({ message: "Wrong credentials !!" });
+        return next();
     }
   } catch (e) {
     e.status = HTTPStatus.BAD_REQUEST;
     console.log("Login Error", e);
+    return next(e);
+  }
+};
+
+export const Logout = async (req, res, next) => {
+  try {
+    const updateUser = await User.updateOne({jwt:req.user.token},{$pull:{jwt:req.user.token}});
+    if(updateUser.modifiedCount<1){
+       res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ message: "Unable to logout User!!" });
+       return next();
+    }
+    res.status(200).json({ message: "User logged out successfully !!" });
+
+  } catch (e) {
+    e.status = HTTPStatus.BAD_REQUEST;
+    console.log("Logout Error", e);
     return next(e);
   }
 };

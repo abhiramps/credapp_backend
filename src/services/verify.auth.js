@@ -1,14 +1,12 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
-import Sessions from "../models/sessions.model.js";
 
 export const verifyAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader) {
     // Bearer ....
-    const bearer = authHeader.split("Bearer ")[1];
-    const token = bearer.replace('"', "");
-
+    const bearer = authHeader?.split("Bearer ")[1];
+    const token = bearer?.replace('"', "");
     if (token) {
       try {
         // Verify Token ....
@@ -18,20 +16,23 @@ export const verifyAuth = async (req, res, next) => {
         }
 
         // Verify the user ....
-        const user = await User.findOne(
+        let user = await User.findOne(
           { _id: verifyToken.id, jwt: token },
-          { jwt: 0 }
-        );
+          { jwt: 0,password:0 }
+        ).lean()
         if (!user) res.status(401).send("Invalid User");
-
         user.token = token;
+        req.user=user
         next();
       } catch (err) {
         res.status(401).send("Invalid/Expired token");
       }
     }
+    else{
+      res.status(500).send("token not found");
+    }
   }
   else{
-    res.status(500).send("token not found");
+    res.status(500).send("authorization header found");
   }
 };
